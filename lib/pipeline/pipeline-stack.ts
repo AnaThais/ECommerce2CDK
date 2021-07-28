@@ -3,7 +3,7 @@ import * as codepipeline_actions from "@aws-cdk/aws-codepipeline-actions";
 import * as cdk from "@aws-cdk/core";
 import { TreeCloudArtifact } from "@aws-cdk/cx-api";
 import { CdkPipeline, SimpleSynthAction } from "@aws-cdk/pipelines";
-
+import { ECommerceStage } from './ecommerce-stage';
 
 export class PipelineStack extends cdk.Stack{
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps){
@@ -35,5 +35,13 @@ export class PipelineStack extends cdk.Stack{
                 },
             }),
         });
+        pipeline.addApplicationStage(
+            new ECommerceStage(this, "Stage1", {
+                env: {
+                    account: "962173486310",
+                    region: "us-east-1",
+                },
+            })
+        )
     }
 }

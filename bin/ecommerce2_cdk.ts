@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { Ecommerce2CdkStack } from '../lib/ecommerce2_cdk-stack';
 import { PipelineStack } from '../lib/pipeline/pipeline-stack';
+import { ECommerceStage } from '../lib/pipeline/ecommerce-stage';
 
 const app = new cdk.App();
 new PipelineStack(app, "PipelineStack", {
