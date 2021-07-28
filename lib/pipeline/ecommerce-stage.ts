@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import {​​​​​​​​ ProductsFunctionStack }​​​​​​​​ from '../stack/productsFunction-stack';
 
 
-
 export class ECommerceStage extends cdk.Stage {
     public readonly urlOutput: cdk.CfnOutput;
 
@@ -13,7 +12,7 @@ export class ECommerceStage extends cdk.Stage {
             tags: {
             ["cost"]: "ECommerce2CDK",
             ["team"]: "AnaThais",
-            }
+            },
         })
        
     }

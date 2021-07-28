@@ -42,6 +42,6 @@ export class PipelineStack extends cdk.Stack{
                     region: "us-east-1",
                 },
             })
-        )
+        );
     }
 }

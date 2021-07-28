@@ -3,7 +3,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as lambdaNodeJS from '@aws-cdk/aws-lambda-nodejs';
 
 export class ProductsFunctionStack extends cdk.Stage {
-    readonly handler: lambdaNodeJS.NodejsFunction
+    readonly handler: lambdaNodeJS.NodejsFunction;
     
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
