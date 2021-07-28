@@ -1,9 +1,8 @@
 import * as codepipeline from "@aws-cdk/aws-codepipeline";
 import * as codepipeline_actions from "@aws-cdk/aws-codepipeline-actions";
 import * as cdk from "@aws-cdk/core";
-import { TreeCloudArtifact } from "@aws-cdk/cx-api";
 import { CdkPipeline, SimpleSynthAction } from "@aws-cdk/pipelines";
-import { ECommerceStage } from './ecommerce-stage';
+import { ECommerceStage } from "./ecommerce-stage";
 
 export class PipelineStack extends cdk.Stack{
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps){
