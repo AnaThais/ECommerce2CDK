@@ -25,6 +25,10 @@ export class ProductsFunctionStack extends cdk.Stack {
             tracing: lambda.Tracing.ACTIVE,
             memorySize: 128,
             timeout: cdk.Duration.seconds(30),
+            environment: {
+                PRODUCTS_DDB: productsDdb.tableName,
+            },
+            
 
         });
         productsDdb.grantReadWriteData(this.handler);
