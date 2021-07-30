@@ -8,7 +8,7 @@ export class ProductsDdbStack extends cdk.Stack {
     super(scope, id, props);
 
     this.table = new dynamodb.Table(this, "ProductsDdb", {
-      tableName: "ProductsDdb",
+      tableName: "products",
       partitionKey: {
         name: "id",
         type: dynamodb.AttributeType.STRING,

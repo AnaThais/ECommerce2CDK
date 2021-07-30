@@ -14,21 +14,25 @@ export class ProductEventsFunctionStack extends cdk.Stack {
   ) {
     super(scope, id, props);
 
-    this.handler = new lambdaNodeJS.NodejsFunction(this, "ProductEventsFunction", {
-      functionName: "ProductEventsFunction",
-      entry: "lambda/productEventsFunction.js",
-      handler: "handler",
-      bundling: {
-        minify: false,
-        sourceMap: true,
-      },
-      tracing: lambda.Tracing.ACTIVE,
-      memorySize: 128,
-      timeout: cdk.Duration.seconds(10),
-      environment: {
-        EVENTS_DDB: eventsDdb.tableName,
-      },
-    });
+    this.handler = new lambdaNodeJS.NodejsFunction(
+      this,
+      "ProductEventsFunction",
+      {
+        functionName: "ProductEventsFunction",
+        entry: "lambda/productEventsFunction.js",
+        handler: "handler",
+        bundling: {
+          minify: false,
+          sourceMap: false,
+        },
+        tracing: lambda.Tracing.ACTIVE,
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          EVENTS_DDB: eventsDdb.tableName,
+        },
+      }
+    );
 
     eventsDdb.grantWriteData(this.handler);
   }

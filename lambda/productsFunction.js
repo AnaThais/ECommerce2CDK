@@ -109,10 +109,10 @@ exports.handler = async function (event, context) {
                      lambdaRequestId);
                console.log(response);
 
-               const result = await Promise.all(
+               const result = await Promise.all([
                     deleteResultPromise,
-                    eventResultPromise
-               );
+                    eventResultPromise,
+               ]);
                console.log(result[0]);
                console.log(result[1]);
 

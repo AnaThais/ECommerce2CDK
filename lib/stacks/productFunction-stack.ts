@@ -21,11 +21,11 @@ export class ProductsFunctionStack extends cdk.Stack {
       handler: "handler",
       bundling: {
         minify: false,
-        sourceMap: true,
+        sourceMap: false,
       },
       tracing: lambda.Tracing.ACTIVE,
       memorySize: 128,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.seconds(30),
       environment: {
         PRODUCTS_DDB: productsDdb.tableName,
         PRODUCT_EVENTS_FUNCTION_NAME: productEventsFunction.functionName,

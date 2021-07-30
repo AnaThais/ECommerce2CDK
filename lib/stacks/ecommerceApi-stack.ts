@@ -3,7 +3,7 @@ import * as lambdaNodeJS from "@aws-cdk/aws-lambda-nodejs";
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as cwlogs from "@aws-cdk/aws-logs";
 
-export class EcommerceApiStack extends cdk.Stack {
+export class ECommerceApiStack extends cdk.Stack {
   readonly urlOutput: cdk.CfnOutput;
 
   constructor(
@@ -14,15 +14,13 @@ export class EcommerceApiStack extends cdk.Stack {
   ) {
     super(scope, id, props);
 
-    const logGroup = new cwlogs.LogGroup(this, "EcommerceApiLogGroup", {
-      logGroupName: "EcommerceApiLogGroup",
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // em produção, melhor manter
-      retention: cwlogs.RetentionDays.ONE_MONTH,
+    const logGroup = new cwlogs.LogGroup(this, "ECommerceApiLogs", {
+      logGroupName: "ECommerceApi",
     });
 
     const api = new apigateway.RestApi(this, "ecommerce-api", {
-      restApiName: "Ecommerce Service",
-      description: "This is the ecommerce service",
+      restApiName: "ECommerce Service",
+      description: "This is the ECommerce service",
       deployOptions: {
         accessLogDestination: new apigateway.LogGroupLogDestination(logGroup),
         accessLogFormat: apigateway.AccessLogFormat.jsonWithStandardFields({
@@ -39,27 +37,41 @@ export class EcommerceApiStack extends cdk.Stack {
       },
     });
 
-    // products
+    const productsFunctionIntegration = new apigateway.LambdaIntegration(
+      productsHandler,
+      {
+        requestTemplates: { "application/json": '{ "statusCode": "200" }' },
+      }
+    );
 
-    const productsFunctionIntegration = new apigateway.LambdaIntegration(productsHandler);
+    // /products
+    const productsResource = api.root.addResource("products");
 
-    const productsResource = api.root.addResource('products');
-    productsResource.addMethod('GET', productsFunctionIntegration);
-    productsResource.addMethod('POST', productsFunctionIntegration);
+    //GET /products
+    productsResource.addMethod("GET", productsFunctionIntegration);
 
-    const productIdResource = productsResource.addResource('{id}');
-    productIdResource.addMethod('GET', productsFunctionIntegration);
-    productIdResource.addMethod('PUT', productsFunctionIntegration);
-    productIdResource.addMethod('DELETE', productsFunctionIntegration);
+    //POST /products
+    productsResource.addMethod("POST", productsFunctionIntegration);
 
-    // orders
-    // events
-    // invoices
+    // /products/{id}
+    const productsIdResource = productsResource.addResource("{id}");
 
-    this.urlOutput = new cdk.CfnOutput(this, 'url', {
-        exportName: 'url',
-        value: api.url,
+    //GET /products/{id}
+    productsIdResource.addMethod("GET", productsFunctionIntegration);
+
+    //PUT /products/{id}
+    productsIdResource.addMethod("PUT", productsFunctionIntegration);
+
+    //DELETE /products/{id}
+    productsIdResource.addMethod("DELETE", productsFunctionIntegration);
+
+    this.urlOutput = new cdk.CfnOutput(this, "url", {
+      exportName: "url",
+      value: api.url,
     });
 
+    // /orders
+    // /events
+    // /invoices
   }
 }
