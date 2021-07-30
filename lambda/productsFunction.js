@@ -5,11 +5,14 @@ const xRay = AWSXRay.captureAWS(require("aws-sdk"));
 
 const productsDdb = process.env.PRODUCTS_DDB;
 const awsRegion = process.env.AWS_REGION;
+const productsEventsFunctionName = process.env.PRODUCT_EVENTS_FUNCTION_NAME;
+
 AWS.config.update({
     region: awsRegion,
 });
 
 const ddbClient = new AWS.DynamoDB.DocumentClient();
+const lambdaClient = new AWS.Lambda;
 
 exports.handler = async function (event, context) {
 
@@ -35,6 +38,12 @@ exports.handler = async function (event, context) {
             product.id = uuid.v4();
 
             await createProduct(product);
+
+            const response = await createProductEvent(product,
+                 "PRODUCT_CREATED", 
+                 "matilde",
+                  lambdaRequestId);
+            console.log(response);
 
             return {
                 statusCode: 201,
@@ -68,7 +77,13 @@ exports.handler = async function (event, context) {
             if (data && data.Item) {
                 const product = JSON.parse(event.body);
                 const result = await updateProduct(productId, product);
-                console.debug ('update result:', result);
+                product.id = productId;
+                const response = await createProductEvent(product,
+                    "PRODUCT_UPDATED", 
+                    "matilde",
+                     lambdaRequestId);
+               console.log(response);
+
                 return {
                     statusCode: 200,
                     headers: {
@@ -87,8 +102,20 @@ exports.handler = async function (event, context) {
         else if (method === 'DELETE') {
             const data = await getProduct(productId);
             if (data && data.Item) {
-                const result = await deleteProduct(productId);
-                console.debug ('delete result:', result);
+                const deleteResultPromise =  deleteProduct(productId);
+                const eventResultPromise =  createProductEvent(data.Item,
+                    "PRODUCT_UPDATED", 
+                    "matilde",
+                     lambdaRequestId);
+               console.log(response);
+
+               const result = await Promise.all(
+                    deleteResultPromise,
+                    eventResultPromise
+               );
+               console.log(result[0]);
+               console.log(result[1]);
+
                 return {
                     statusCode: 200,
                     headers: {
@@ -116,6 +143,24 @@ exports.handler = async function (event, context) {
         }),
     };
 };
+
+
+function createProductEvent(product, event, username, lambdaRequestId){
+    const params= {
+        functioName: productsEventsFunctionName,
+        InvocarionType: "RequestResponse",
+        Payload: JSON.stringify({
+            productEvent:{
+                requestId: lambdaRequestId,
+                eventType: eventType,
+                productId: product.id,
+                productCode: product.code,
+                username: username,
+            },
+        }),
+    };
+    lambdaClient.invoke(params).promise();
+}
 
 function deleteProduct(id) {
     const params = {
@@ -152,12 +197,13 @@ function updateProduct(id, product) {
         Key: {
             id: id,
         },
-        UpdateExpression: "set productName = :n, code = :c, price = :p, model = :m",
+        UpdateExpression: "set productName = :n, code = :c, price = :p, model = :m, producturl = :u",
         ExpressionAttributeValues: {
             ':n': product.productName,
             ':c': product.code,
             ':p': product.price,
             ':m': product.model,
+            ':u': producturl,
         },
         ReturnValues: 'UPDATED_NEW',
     };
