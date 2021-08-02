@@ -4,6 +4,7 @@ import { EventsDdbStack } from './../stacks/eventsDdb-stack';
 import { ProductsFunctionStack } from "../stacks/productFunction-stack";
 import { ECommerceApiStack } from "../stacks/ecommerceApi-stack";
 import { ProductsDdbStack } from '../stacks/productDdb-stack';
+import { OrdersApplicationStack } from "../stacks/ordersApplication-stack";
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
@@ -54,15 +55,27 @@ export class ECommerceStage extends cdk.Stage {
     productsFunctionStack.addDependency(productsDdbStack);
     productsFunctionStack.addDependency(productEventsFunctionStack);
 
+      const ordersApplicationStack = new OrdersApplicationStack(
+        this,
+        "OrdersApplication",
+        productsDdbStack.table,
+        {
+        tags: tags,
+      }
+      );
+      ordersApplicationStack.addDependency(productsDdbStack);
+
     const ecommerceApiStack = new ECommerceApiStack(
       this,
       "EcommerceApiStack",
       productsFunctionStack.handler,
+      ordersApplicationStack.ordersHandler,
       {
         tags: tags,
       }
     );
     ecommerceApiStack.addDependency(productsFunctionStack);
+    ecommerceApiStack.addDependency(ordersApplicationStack);
 
     this.urlOutput = ecommerceApiStack.urlOutput;
   }
