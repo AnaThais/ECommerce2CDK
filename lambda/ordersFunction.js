@@ -116,7 +116,7 @@ exports.handler = async function (event, context) {
             event.queryStringParameters.orderId
           );
 
-          const deleteOrderEventPromise = await sendOrderEvent(orderCreated, "ORDER_DELETED", lambdaRequestId)
+          const deleteOrderEventPromise = sendOrderEvent(data.Item, "ORDER_DELETED", lambdaRequestId)
           
           const results = await Promise.all([
             deleteOrderPromise,

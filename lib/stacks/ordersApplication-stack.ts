@@ -15,6 +15,7 @@ export class OrdersApplicationStack extends cdk.Stack {
         scope: cdk.Construct,
         id: string,
         productsDdb: dynamodb.Table,
+        eventsDdb: dynamodb.Table,
         props?: cdk.StackProps
     ){
         super(scope, id, props);
@@ -68,21 +69,61 @@ export class OrdersApplicationStack extends cdk.Stack {
           queueName: "order-events-dlq",
         });
 
-        const orderEvents = new sqs.Queue(this, "OrderEventsDlq", {
+        const orderEventsQueu = new sqs.Queue(this, "OrderEventsDlq", {
           queueName: "order-events",
           deadLetterQueue: {
             queue: orderEventDlq,
             maxReceiveCount: 3,
           },
         });
-        ordersTopic.addSubscription(new subs.SqsSubscription(orderEvents));
-
-       /*ordersTopic.addSubscription( new subs.EmailSubscription("anathais@inatel.br", {
+        ordersTopic.addSubscription(new subs.SqsSubscription(orderEventsQueu));
+        // faltoou código
+       ordersTopic.addSubscription( new subs.EmailSubscription("anathais@inatel.br", {
        json: true,
        filterPolicy:{
-         ["eventType"]: new sns.SubscriptionFilter([subs])       }
+         eventType: sns.SubscriptionFilter.stringFilter({
+           allowlist: ["ORDER_DELETED"],
+         }),
+        },
 
-      }));*/
+      })
+    );
 
-    }
+    const orderEventsTest = new sqs.Queue(this, "OrderEventsTest", {
+      queueName: "order-events-test"
+    });
+
+    ordersTopic.addSubscription(
+      new subs.SqsSubscription(orderEventsTest , {
+        filterPolicy: {
+          eventType: sns.SubscriptionFilter.stringFilter({
+            allowlist: ["ORDER_CREATED"],
+          }),
+        },
+
+      })
+    );
+
+
+    const orderEventsHandler = new lambdaNodeJS.NodejsFunction(this, "OrderEventsFunction", {
+      functionName: "OrderEventsFuncion",
+      entry: "lambda/orderEventsFunction.js",
+      handler: "handler",
+      bundling: {
+        minify: false,
+        sourceMap: false,
+      },
+      tracing: lambda.Tracing.ACTIVE,
+      memorySize: 128,
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        EVENTS_DDB: productsDdb.tableName,
+      }
+    });
+   // orderEventsHandler.add
+    eventsDdb.grantWriteData(orderEventsHandler);
+    orderEventsQueu.grantConsumeMessages(orderEventsHandler);
+
+
+  }
 }
