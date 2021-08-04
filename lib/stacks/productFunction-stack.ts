@@ -2,6 +2,7 @@ import * as cdk from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as lambdaNodeJS from "@aws-cdk/aws-lambda-nodejs";
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
+import { SqsDlq } from "@aws-cdk/aws-lambda-event-sources";
 
 export class ProductsFunctionStack extends cdk.Stack {
   readonly handler: lambdaNodeJS.NodejsFunction;

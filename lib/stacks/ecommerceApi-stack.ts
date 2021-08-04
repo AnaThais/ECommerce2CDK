@@ -11,6 +11,7 @@ export class ECommerceApiStack extends cdk.Stack {
     id: string,
     productsHandler: lambdaNodeJS.NodejsFunction,
     ordersHandler: lambdaNodeJS.NodejsFunction,
+    productEventsFetchHandler: lambdaNodeJS.NodejsFunction,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -71,19 +72,46 @@ export class ECommerceApiStack extends cdk.Stack {
       value: api.url,
     });
 
+    // /orders
     const ordersFunctionIntegration = new apigateway.LambdaIntegration(
       ordersHandler,
       {
         requestTemplates: { "application/json": '{ "statusCode": "200" }' },
       }
     );
-
     const ordersResource = api.root.addResource("orders");
     ordersResource.addMethod("GET", ordersFunctionIntegration);
     ordersResource.addMethod("POST", ordersFunctionIntegration);
     ordersResource.addMethod("DELETE", ordersFunctionIntegration);
 
+    // /events
+    const productEventsFetchFunctionIntegration =
+      new apigateway.LambdaIntegration(productEventsFetchHandler, {
+        requestTemplates: { "application/json": '{ "statusCode": "200" }' },
+      });
 
-    
+    const productEventsResource = productsResource.addResource("events");
+    //GET /products/events
+    productEventsResource.addMethod(
+      "GET",
+      productEventsFetchFunctionIntegration
+    );
+
+    //GET /products/events/{code}
+    const productEventsByCodeResource =
+      productEventsResource.addResource("{code}");
+    productEventsByCodeResource.addMethod(
+      "GET",
+      productEventsFetchFunctionIntegration
+    );
+
+    //GET /products/events/{code}/{event}
+    const productEventsByAndEventCodeResource =
+      productEventsByCodeResource.addResource("{event}");
+    productEventsByAndEventCodeResource.addMethod(
+      "GET",
+      productEventsFetchFunctionIntegration
+    );
+    //invoices
   }
 }

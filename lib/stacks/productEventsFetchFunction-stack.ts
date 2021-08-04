@@ -3,7 +3,7 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as lambdaNodeJS from "@aws-cdk/aws-lambda-nodejs";
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
 
-export class ProductEventsFunctionStack extends cdk.Stack {
+export class ProductEventsFetchsFunctionStack extends cdk.Stack {
   readonly handler: lambdaNodeJS.NodejsFunction;
 
   constructor(
@@ -16,10 +16,10 @@ export class ProductEventsFunctionStack extends cdk.Stack {
 
     this.handler = new lambdaNodeJS.NodejsFunction(
       this,
-      "ProductEventsFunction",
+      "ProductEventsFetchFunction",
       {
-        functionName: "ProductEventsFunction",
-        entry: "lambda/productEventsFunction.js",
+        functionName: "ProductEventsFetchFunction",
+        entry: "lambda/productEventsFetchFunction.js",
         handler: "handler",
         bundling: {
           minify: false,
@@ -33,7 +33,6 @@ export class ProductEventsFunctionStack extends cdk.Stack {
         },
       }
     );
-
-    eventsDdb.grantWriteData(this.handler);
+    eventsDdb.grantReadData(this.handler);
   }
 }
