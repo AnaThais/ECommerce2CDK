@@ -5,63 +5,59 @@ const xRay = AWSXRay.captureAWS(require("aws-sdk"));
 
 const eventsDdb = process.env.EVENTS_DDB;
 const awsRegion = process.env.AWS_REGION;
+
 AWS.config.update({
-    region: awsRegion,
+  region: awsRegion,
 });
 
 const ddbClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async function (event, context) {
+  console.log(event);
 
-    console.log(event);
+  const promises = [];
 
-    const promises = []
+  event.Records.forEach((record) => {
+    const body = JSON.parse(record.body);
+    console.log(body);
+    promises.push(createEvent(body));
+  });
 
-    event.Record.forEach((record) => {
-        const body = JSON.stringify(record.body);
-        console.log(body);
-        promises.push(creatEvent(body))
+  await Promise.all(promises);
 
+  return {};
+};
 
-    });
+function createEvent(body) {
+  const envelope = JSON.parse(body.Message);
+  const event = JSON.parse(envelope.data);
 
-    await Promise.all(promises);
+  console.log(`MessageId: ${body.MessageId}`);
 
-    return {};
+  const timestamp = Date.now();
+  const ttl = ~~(timestamp / 1000 + 60 * 60);
 
-}
-
-function createEvent(body){
-    const envelope = JSON.parse(body.Message);
-    const event = JSON.parse(envelope.data);
-    
-    console.log(`MessageId: ${body.MessageId}`);
-    
-    const timestamp = Data.now();
-    const ttl = ~~(timestamp / 100 + 60 * 60)
-
-    try{
-        return ddbClient.put({
-            TableName: eventsDdb,
-            Item:{
-                pk: `#order_ ${orderId}`,
-                sk: `${envelop.eventType}#${timestamp}`,
-                ttl: ttl,
-                username: event.username,
-                createdAt: timestamp,
-                requestId: event.requestId,
-                eventType: envelope.eventType,
-                info: {
-                    orderId: event.orderId,
-                    productCodes: event.productCodes,
-                    messageId: body.MessageId,          
-
-                }
-            }
-        }).promise();
-
-    }catch (err){
-        console.error(err);
-    }
-
+  try {
+    return ddbClient
+      .put({
+        TableName: eventsDdb,
+        Item: {
+          pk: `#order_${event.orderId}`,
+          sk: `${envelope.eventType}#${timestamp}`,
+          ttl: ttl,
+          username: event.username,
+          createdAt: timestamp,
+          requestId: event.requestId,
+          eventType: envelope.eventType,
+          info: {
+            orderId: event.orderId,
+            productCodes: event.productCodes,
+            messageId: body.MessageId,
+          },
+        },
+      })
+      .promise();
+  } catch (err) {
+    console.error(err);
+  }
 }

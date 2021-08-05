@@ -31,6 +31,8 @@
     "@aws-cdk/aws-lambda": "^1.116.0",
     "@aws-cdk/aws-lambda-event-sources": "^1.116.0",
     "@aws-cdk/aws-lambda-nodejs": "^1.116.0",
+    "@aws-cdk/aws-s3": "^1.116.0",
+    "@aws-cdk/aws-s3-notifications": "^1.116.0",
     "@aws-cdk/aws-sns": "^1.116.0",
     "@aws-cdk/aws-sns-subscriptions": "^1.116.0",
     "@aws-cdk/aws-sqs": "^1.116.0",

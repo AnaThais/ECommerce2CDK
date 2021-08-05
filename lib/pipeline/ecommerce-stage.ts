@@ -1,12 +1,12 @@
 import * as cdk from "@aws-cdk/core";
-import { ProductEventsFunctionStack } from '../stacks/productEventsFunction-stack';
-import { EventsDdbStack } from './../stacks/eventsDdb-stack';
-import { ProductsFunctionStack } from "../stacks/productFunction-stack";
+import { ProductsFunctionStack } from "../stacks/productsFunction-stack";
 import { ECommerceApiStack } from "../stacks/ecommerceApi-stack";
-import { ProductsDdbStack } from '../stacks/productDdb-stack';
+import { ProductsDdbStack } from "../stacks/productsDdb-stack";
+import { EventsDdbStack } from "../stacks/eventsDdb-stack";
+import { ProductEventsFunctionStack } from "../stacks/productEventsFunction-stack";
 import { OrdersApplicationStack } from "../stacks/ordersApplication-stack";
 import { ProductEventsFetchsFunctionStack } from "../stacks/productEventsFetchFunction-stack";
-
+import { InvoiceImportApplicationStack } from "../stacks/invoiceImportApplication-stack";
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
@@ -65,9 +65,20 @@ export class ECommerceStage extends cdk.Stage {
       new ProductEventsFetchsFunctionStack(
         this,
         "ProductEventsFetchsFunction",
-        eventsDdbStack.table
+        eventsDdbStack.table,
+        {
+          tags: tags,
+        }
       );
     productEventsFetchsFunctionStack.addDependency(eventsDdbStack);
+
+    const invoiceImportApplicationStack = new InvoiceImportApplicationStack(
+      this,
+      "InvoiceApp",
+      {
+        tags: tags,
+      }
+    );
 
     const eCommerceApiStack = new ECommerceApiStack(
       this,
@@ -75,6 +86,7 @@ export class ECommerceStage extends cdk.Stage {
       productsFunctionStack.handler,
       ordersApplicationStack.ordersHandler,
       productEventsFetchsFunctionStack.handler,
+      invoiceImportApplicationStack.urlHandler,
       {
         tags: tags,
       }
@@ -82,6 +94,7 @@ export class ECommerceStage extends cdk.Stage {
     eCommerceApiStack.addDependency(productsFunctionStack);
     eCommerceApiStack.addDependency(ordersApplicationStack);
     eCommerceApiStack.addDependency(productEventsFetchsFunctionStack);
+    eCommerceApiStack.addDependency(invoiceImportApplicationStack);
 
     this.urlOutput = eCommerceApiStack.urlOutput;
   }
