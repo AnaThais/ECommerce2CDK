@@ -7,6 +7,7 @@ import { ProductEventsFunctionStack } from "../stacks/productEventsFunction-stac
 import { OrdersApplicationStack } from "../stacks/ordersApplication-stack";
 import { ProductEventsFetchsFunctionStack } from "../stacks/productEventsFetchFunction-stack";
 import { InvoiceImportApplicationStack } from "../stacks/invoiceImportApplication-stack";
+import { InvoiceWSApiStack } from "../stacks/invoiceWSApi-stack";
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
@@ -75,10 +76,12 @@ export class ECommerceStage extends cdk.Stage {
     const invoiceImportApplicationStack = new InvoiceImportApplicationStack(
       this,
       "InvoiceApp",
+      eventsDdbStack.table,
       {
         tags: tags,
       }
     );
+    invoiceImportApplicationStack.addDependency(eventsDdbStack);
 
     const eCommerceApiStack = new ECommerceApiStack(
       this,
@@ -97,5 +100,9 @@ export class ECommerceStage extends cdk.Stage {
     eCommerceApiStack.addDependency(invoiceImportApplicationStack);
 
     this.urlOutput = eCommerceApiStack.urlOutput;
+
+    const invoiceWSApiStack = new InvoiceWSApiStack(this, "InvoiceWSApi", {
+      tags: tags,
+    });
   }
 }
